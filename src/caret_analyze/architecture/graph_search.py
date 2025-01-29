@@ -14,7 +14,7 @@
 
 from __future__ import annotations
 
-from collections import defaultdict, UserList
+from collections import defaultdict, UserList, deque
 from collections.abc import Callable
 from copy import deepcopy
 from itertools import product
@@ -162,6 +162,39 @@ class GraphCore:
                 if edges_cache == []:
                     return
 
+    def _search_paths_width(
+        self,
+        u: int,
+        d: int,
+        edge: GraphEdgeCore | None,
+        visited: dict[tuple[int, int], bool],
+        path: GraphPathCore,
+        paths: list[GraphPathCore],
+        max_depth: int = 0
+    ) -> None:
+        queue = deque([(u, deepcopy(path), deepcopy(visited), 0)])
+
+        while queue:
+            current_node, current_path, current_visited, current_depth = queue.popleft()
+
+            if current_node == d and len(current_path) > 0:
+                paths.append(deepcopy(current_path))
+                return
+
+            if 0 < max_depth < current_depth:
+                continue
+
+            for edge in self._graph[current_node]:
+                next_node = edge.i_to
+                if current_visited[current_node, next_node] is False:
+                    next_path = deepcopy(current_path)
+                    next_path.append(edge)
+                    next_visited = deepcopy(current_visited)
+                    next_visited[current_node, next_node] = True
+                    queue.append(
+                        (next_node, next_path, next_visited, current_depth + 1)
+                    )
+
     def search_paths(
         self,
         start: int,
@@ -177,7 +210,8 @@ class GraphCore:
         paths: list[GraphPathCore] = []
 
         # self._search_paths_recursion(start, goal, None, visited, path, paths)
-        self._search_paths(start, goal, None, visited, path, paths, max_depth)
+        # self._search_paths(start, goal, None, visited, path, paths, max_depth)
+        self._search_paths_width(start, goal, None, visited, path, paths, max_depth)
 
         return paths
 
