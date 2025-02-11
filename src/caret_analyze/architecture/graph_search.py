@@ -114,6 +114,7 @@ class GraphCore:
         visited: dict[tuple[int, int], bool],
         path: GraphPathCore,
         paths: list[GraphPathCore],
+        first_only: bool,
         max_depth: int = 0
     ) -> None:
 
@@ -137,6 +138,8 @@ class GraphCore:
         while True:
             if u == d and forward and len(path) > 0:
                 paths.append(deepcopy(path))
+                if first_only:
+                    return
 
             if u != d or u == u_start:
                 edge = get_next_edge(u, edges_cache)
@@ -170,6 +173,7 @@ class GraphCore:
         visited: dict[tuple[int, int], bool],
         path: GraphPathCore,
         paths: list[GraphPathCore],
+        first_only: bool,
         max_depth: int = 0
     ) -> None:
         queue = deque([(u, deepcopy(path), deepcopy(visited), 0)])
@@ -179,7 +183,8 @@ class GraphCore:
 
             if current_node == d and len(current_path) > 0:
                 paths.append(deepcopy(current_path))
-                return
+                if first_only:
+                    return
 
             if 0 < max_depth < current_depth:
                 continue
@@ -199,7 +204,9 @@ class GraphCore:
         self,
         start: int,
         goal: int,
-        max_depth: int = 0
+        depth_first: bool,
+        first_only: bool,
+        max_depth: int = 0,
     ) -> list[GraphPathCore]:
 
         visited: dict[tuple[int, int], bool] = {}
@@ -210,8 +217,11 @@ class GraphCore:
         paths: list[GraphPathCore] = []
 
         # self._search_paths_recursion(start, goal, None, visited, path, paths)
-        # self._search_paths(start, goal, None, visited, path, paths, max_depth)
-        self._search_paths_width(start, goal, None, visited, path, paths, max_depth)
+
+        if depth_first:
+            self._search_paths(start, goal, None, visited, path, paths, first_only, max_depth)
+        else:
+            self._search_paths_width(start, goal, None, visited, path, paths, first_only, max_depth)
 
         return paths
 
@@ -323,7 +333,9 @@ class Graph:
     def search_paths(
         self,
         *nodes: GraphNode,
-        max_depth: int | None = None
+        max_depth: int | None = None,
+        depth_first: bool,
+        first_only: bool
     ) -> list[GraphPath]:
         if len(nodes) < 2:
             raise InvalidArgumentError('nodes must be at least 2')
@@ -336,7 +348,9 @@ class Graph:
                 self._graph.search_paths(
                     self._node_to_idx[start],
                     self._node_to_idx[goal],
-                    max_depth or 0
+                    depth_first=depth_first,
+                    first_only=first_only,
+                    max_depth=max_depth or 0
                 )
             )
 
@@ -404,7 +418,8 @@ class CallbackPathSearcher:
         end_name = self._to_node_point_name(
             end_callback.callback_name, 'write')
 
-        graph_paths = self._graph.search_paths(GraphNode(start_name), GraphNode(end_name))
+        # TODO: The flag of search_paths(), which is executed when architecture files are loaded, is set to depth-first search for now, so it may need to be changed.
+        graph_paths = self._graph.search_paths(GraphNode(start_name), GraphNode(end_name), depth_first=True, first_only=False)
 
         paths: list[NodePathStruct] = []
         for graph_path in graph_paths:
@@ -678,7 +693,9 @@ class NodePathSearcher:
     def search(
         self,
         *node_names: str,
-        max_node_depth: int | None = None
+        max_node_depth: int | None = None,
+        depth_first: bool,
+        first_only: bool
     ) -> list[PathStruct]:
         paths: list[PathStruct] = []
 
@@ -687,7 +704,9 @@ class NodePathSearcher:
         graph_nodes: list[GraphNode] = [GraphNode(node) for node in node_names]
         graph_paths = self._graph.search_paths(
             *graph_nodes,
-            max_depth=max_search_depth)
+            max_depth=max_search_depth,
+            depth_first=depth_first,
+            first_only=first_only)
 
         for graph_path in graph_paths:
             paths.append(self._to_path(graph_path))

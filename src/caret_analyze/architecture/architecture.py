@@ -264,6 +264,8 @@ class Architecture(Summarizable):
         max_node_depth: int | None = None,
         node_filter: Callable[[str], bool] | None = None,
         communication_filter: Callable[[str], bool] | None = None,
+        depth_first: bool = True,
+        first_only: bool = False
     ) -> list[PathStructValue]:
         for node_name in node_names:
             if node_name not in self.node_names:
@@ -294,7 +296,7 @@ class Architecture(Summarizable):
         path_searcher = NodePathSearcher(
             tuple(self._nodes), tuple(self._communications), node_filter, communication_filter)
         paths = [v.to_value() for v in
-                 path_searcher.search(*node_names, max_node_depth=max_node_depth)]
+                 path_searcher.search(*node_names, max_node_depth=max_node_depth, depth_first=depth_first, first_only=first_only)]
 
         # Print message after search
         msg = f'A search up to depth {max_node_depth} has been completed. '
