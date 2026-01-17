@@ -40,7 +40,10 @@ class VisualizeLibInterface(metaclass=ABCMeta):
         granularity: str,
         treat_drop_as_delay: bool,
         lstrip_s: float,
-        rstrip_s: float
+        rstrip_s: float,
+        start_ns: int | None,
+        end_ns: int | None,
+        trigger_ns: int | None
     ) -> Figure:
         """
         Get message flow.
@@ -62,6 +65,12 @@ class VisualizeLibInterface(metaclass=ABCMeta):
             Start time of cropping range.
         rstrip_s: float, optional
             End point of cropping range.
+        start_ns : int | None, optional
+            Absolute unix_time start (nanoseconds) of the cropping window.
+        end_ns : int | None, optional
+            Absolute unix_time end (nanoseconds) of the cropping window.
+        trigger_ns : int | None, optional
+            Trigger timestamp (nanoseconds) for vertical line marker.
 
         Returns
         -------
@@ -111,7 +120,6 @@ class VisualizeLibInterface(metaclass=ABCMeta):
             Start time of cropping range.
         rstrip_s: float, optional
             End point of cropping range.
-
         Returns
         -------
         Figure

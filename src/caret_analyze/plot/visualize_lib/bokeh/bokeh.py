@@ -56,7 +56,10 @@ class Bokeh(VisualizeLibInterface):
         granularity: str,
         treat_drop_as_delay: bool,
         lstrip_s: float,
-        rstrip_s: float
+        rstrip_s: float,
+        start_ns: int | None,
+        end_ns: int | None,
+        trigger_ns: int | None
     ) -> Figure:
         """
         Get message flow figure.
@@ -80,6 +83,12 @@ class Bokeh(VisualizeLibInterface):
             Start time of cropping range, by default 0.
         rstrip_s: float, optional
             End point of cropping range, by default 0.
+        start_ns : float | None, optional
+            Start time for display (nanoseconds), by default None.
+        end_ns : float | None, optional
+            End time for display (nanoseconds), by default None.
+        trigger_ns : float | None, optional
+            Trigger timestamp for vertical line marker (nanoseconds), by default None.
 
         Returns
         -------
@@ -89,7 +98,7 @@ class Bokeh(VisualizeLibInterface):
         """
         message_flow = BokehMessageFlow(
             target_path, xaxis_type, ywheel_zoom, granularity,
-            treat_drop_as_delay, lstrip_s, rstrip_s,
+            treat_drop_as_delay, lstrip_s, rstrip_s, start_ns, end_ns, trigger_ns,
         )
         return message_flow.create_figure()
 

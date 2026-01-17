@@ -21,6 +21,8 @@ from typing import Any
 
 from bokeh.models import CrosshairTool, HoverTool
 from bokeh.plotting import ColumnDataSource, figure as Figure
+from bokeh.models import Span
+
 
 import numpy as np
 
@@ -43,7 +45,10 @@ class BokehMessageFlow:
         granularity: str,
         treat_drop_as_delay: bool,
         lstrip_s: float,
-        rstrip_s: float
+        rstrip_s: float,
+        start_ns: int | None = None,
+        end_ns: int | None = None,
+        trigger_ns: int | None = None
     ) -> None:
         self._target_path = target_path
         self._xaxis_type = xaxis_type
@@ -52,6 +57,9 @@ class BokehMessageFlow:
         self._treat_drop_as_delay = treat_drop_as_delay
         self._lstrip_s = lstrip_s
         self._rstrip_s = rstrip_s
+        self._start_ns = start_ns
+        self._end_ns = end_ns
+        self._trigger_ns = trigger_ns
 
     def create_figure(self) -> Figure:
         """
@@ -68,11 +76,19 @@ class BokehMessageFlow:
             f'Message flow of {self._target_path.path_name}', self._ywheel_zoom, self._xaxis_type)
         fig.add_tools(CrosshairTool(line_alpha=0.4))
 
-        # Strip
+        # Get dataframe and clip to specified time range
         df = self._target_path.to_dataframe(treat_drop_as_delay=self._treat_drop_as_delay)
-        strip = Strip(self._lstrip_s, self._rstrip_s)
-        clip = strip.to_clip(df)
-        df = clip.execute(df)
+
+        # If start_s and end_s are specified, use them to create an absolute time clip
+        if self._start_ns is not None and self._end_ns is not None:
+            # Clip by absolute nanosecond timestamps without float conversion
+            clip = Clip(self._start_ns, self._end_ns)
+            df = clip.execute(df)
+        else:
+            # Otherwise use lstrip_s and rstrip_s (relative stripping from both ends)
+            strip = Strip(self._lstrip_s, self._rstrip_s)
+            clip = strip.to_clip(df)
+            df = clip.execute(df)
 
         # Apply xaxis offset
         frame_min: float = clip.min_ns
@@ -87,7 +103,7 @@ class BokehMessageFlow:
             frame_min = converter.convert(frame_min)
             frame_max = converter.convert(frame_max)
         offset =\
-            Offset(round(converter.convert(clip.min_ns))) if converter else Offset(clip.min_ns)
+             Offset(round(converter.convert(clip.min_ns)), True) if converter else Offset(clip.min_ns)
         apply_x_axis_offset(fig, frame_min, frame_max)
 
         # Format
@@ -128,6 +144,19 @@ class BokehMessageFlow:
                 source=source
             )
             fig.add_tools(flow_source.create_hover({'renderers': [line]}))
+
+        # Draw trigger line if specified
+        if self._trigger_ns is not None:
+            trigger_x = (self._trigger_ns - offset.value) * 1e-9
+
+            trigger_line = Span(
+                location=trigger_x,
+                dimension='height',
+                line_color='red',
+                line_width=3,
+                line_dash='dashed'
+            )
+            fig.add_layout(trigger_line)
 
         return fig
 
@@ -572,7 +601,7 @@ class NodeLevelFormatter(DataFrameFormatter):
 class Offset:
     def __init__(
         self,
-        offset_ns: int
+        offset_ns: int,
     ) -> None:
         self._offset = offset_ns
 

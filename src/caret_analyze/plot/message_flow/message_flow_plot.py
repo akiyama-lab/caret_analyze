@@ -38,6 +38,9 @@ class MessageFlowPlot(PlotBase):
         treat_drop_as_delay: bool,
         lstrip_s: float,
         rstrip_s: float,
+        start_ns: int | None,
+        end_ns: int | None,
+        trigger_ns: int | None,
     ) -> None:
         self._target_path = target_path
         self._visualize_lib = visualize_lib
@@ -45,6 +48,9 @@ class MessageFlowPlot(PlotBase):
         self._treat_drop_as_delay = treat_drop_as_delay
         self._lstrip_s = lstrip_s
         self._rstrip_s = rstrip_s
+        self._start_ns = start_ns
+        self._end_ns = end_ns
+        self._trigger_ns = trigger_ns
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
         """
@@ -98,5 +104,6 @@ class MessageFlowPlot(PlotBase):
 
         return self._visualize_lib.message_flow(
             self._target_path, xaxis_type, ywheel_zoom,
-            self._granularity, self._treat_drop_as_delay, self._lstrip_s, self._rstrip_s
+            self._granularity, self._treat_drop_as_delay,
+            self._lstrip_s, self._rstrip_s, self._start_ns, self._end_ns, self._trigger_ns
         )

@@ -30,7 +30,10 @@ class MessageFlowPlotFactory:
         granularity: str | None = None,
         treat_drop_as_delay: bool = False,
         lstrip_s: float = 0,
-        rstrip_s: float = 0
+        rstrip_s: float = 0,
+        start_ns: int | None = None,
+        end_ns: int | None = None,
+        trigger_ns: int | None = None
     ) -> MessageFlowPlot:
         """
         Create instance.
@@ -49,6 +52,12 @@ class MessageFlowPlotFactory:
             Start time of cropping range, by default 0.
         rstrip_s: float, optional
             End point of cropping range, by default 0.
+        start_ns : int | None, optional
+            Start time for message flow visualization (unix_time in nanoseconds), None by default.
+        end_ns : int | None, optional
+            End time for message flow visualization (unix_time in nanoseconds), None by default.
+        trigger_ns : int | None, optional
+            Trigger timestamp for message flow visualization, None by default.
 
         Returns
         -------
@@ -66,5 +75,5 @@ class MessageFlowPlotFactory:
             raise InvalidArgumentError('granularity must be [ raw / node ]')
 
         return MessageFlowPlot(
-            target_path, visualize_lib, granularity, treat_drop_as_delay, lstrip_s, rstrip_s
+            target_path, visualize_lib, granularity, treat_drop_as_delay, lstrip_s, rstrip_s, start_ns, end_ns, trigger_ns
         )
