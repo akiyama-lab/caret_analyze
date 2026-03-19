@@ -37,7 +37,9 @@ class TimeSeriesPlotFactory:
         target_objects: Sequence[TimeSeriesPlotTypes],
         metrics: str,
         visualize_lib: VisualizeLibInterface,
-        case: str = 'best'  # case is only used for response time timeseries.
+        case: str = 'best',  # case is only used for response time timeseries.
+        start_ns: int | None = None,
+        end_ns: int | None = None
     ) -> TimeSeriesPlot:
         """
         Create an instance of TimeSeriesPlot.
@@ -54,6 +56,10 @@ class TimeSeriesPlotFactory:
         case : str
             Parameter specifying all, best, worst, or worst-with-external-latency.
             Use to create Response time timeseries graph.
+        start_ns : int | None
+            Start timestamp in nanoseconds for filtering records, None by default.
+        end_ns : int | None
+            End timestamp in nanoseconds for filtering records, None by default.
 
         Returns
         -------
@@ -82,7 +88,7 @@ class TimeSeriesPlotFactory:
             metrics_ = ResponseTimeTimeSeries(
                 [_ for _ in target_objects if isinstance(_, Path)], case
             )
-            return TimeSeriesPlot(metrics_, visualize_lib, case)
+            return TimeSeriesPlot(metrics_, visualize_lib, case, start_ns=start_ns, end_ns=end_ns)
         else:
             raise UnsupportedTypeError(
                 'Unsupported metrics specified. '

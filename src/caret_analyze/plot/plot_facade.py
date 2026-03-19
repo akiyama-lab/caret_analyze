@@ -150,7 +150,9 @@ class Plot:
     @type_check_decorator
     def create_response_time_timeseries_plot(
         *target_objects: Path,
-        case: str = 'all'
+        case: str = 'all',
+        start_ns: int | None = None,
+        end_ns: int | None = None,
     ) -> PlotBase:
         """
         Get response time timeseries plot instance.
@@ -163,6 +165,10 @@ class Plot:
         case: str, optional
             Response time calculation method, all by default.
             supported case: [all/best/worst/worst-with-external-latency].
+        start_ns : int | None
+            Start timestamp in nanoseconds for filtering records, None by default.
+        end_ns : int | None
+            End timestamp in nanoseconds for filtering records, None by default.
 
         Returns
         -------
@@ -172,7 +178,7 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = TimeSeriesPlotFactory.create_instance(
-            target_objects, 'response_time', visualize_lib, case
+            target_objects, 'response_time', visualize_lib, case, start_ns=start_ns, end_ns=end_ns
         )
         return plot
 
@@ -335,6 +341,8 @@ class Plot:
     def create_response_time_histogram_plot(
         *target_objects: Path,
         case: str = 'all',
+        start_ns: int | None = None,
+        end_ns: int | None = None,
     ) -> PlotBase:
         """
         Get response time histogram plot instance.
@@ -347,6 +355,10 @@ class Plot:
         case: str, optional
             Response time calculation method, all by default.
             supported case: [all/best/worst/worst-with-external-latency].
+        start_ns : int | None
+            Start timestamp in nanoseconds for filtering records, None by default.
+        end_ns : int | None
+            End timestamp in nanoseconds for filtering records, None by default.
 
         Returns
         -------
@@ -356,6 +368,6 @@ class Plot:
         """
         visualize_lib = VisualizeLibFactory.create_instance()
         plot = HistogramPlotFactory.create_instance(
-            target_objects, 'response_time', visualize_lib, case
+            target_objects, 'response_time', visualize_lib, case, start_ns=start_ns, end_ns=end_ns
         )
         return plot

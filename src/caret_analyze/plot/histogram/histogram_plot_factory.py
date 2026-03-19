@@ -34,7 +34,9 @@ class HistogramPlotFactory:
         target_objects: Sequence[HistTypes],
         metrics_name: str,
         visualize_lib: VisualizeLibInterface,
-        case: str | None = None
+        case: str | None = None,
+        start_ns: int | None = None,
+        end_ns: int | None = None
     ) -> HistogramPlot:
         """
         Create an instance of HistogramPlot.
@@ -51,6 +53,10 @@ class HistogramPlotFactory:
             supported case: [all/best/worst/worst-with-external-latency].
         visualize_lib : VisualizeLibInterface
             Instance of VisualizeLibInterface used for visualization.
+        start_ns : int | None, optional
+            Start timestamp in nanoseconds for filtering records, None by default.
+        end_ns : int | None, optional
+            End timestamp in nanoseconds for filtering records, None by default.
 
         Returns
         -------
@@ -87,5 +93,7 @@ class HistogramPlotFactory:
             visualize_lib,
             target_objects,
             metrics_name,
-            case
+            case,
+            start_ns,
+            end_ns
             )

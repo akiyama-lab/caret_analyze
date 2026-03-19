@@ -34,11 +34,23 @@ class TimeSeriesPlot(PlotBase):
         self,
         metrics: MetricsBase,
         visualize_lib: VisualizeLibInterface,
-        case: str = 'best'  # case is only used for response time timeseries.
+        case: str = 'best', # case is only used for response time timeseries.
+        start_ns: int | None = None,
+        end_ns: int | None = None
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib
         self._case = case
+        self._start_ns = start_ns
+        self._end_ns = end_ns
+
+    @property
+    def start_ns(self) -> int | None:
+        return self._start_ns
+
+    @property
+    def end_ns(self) -> int | None:
+        return self._end_ns
 
     def to_dataframe(self, xaxis_type: str = 'system_time') -> pd.DataFrame:
         """
@@ -66,7 +78,22 @@ class TimeSeriesPlot(PlotBase):
 
         """
         self._validate_xaxis_type(xaxis_type)
-        return self._metrics.to_dataframe(xaxis_type)
+        df = self._metrics.to_dataframe(xaxis_type)
+
+        # # Apply time filtering if start_ns or end_ns is specified
+        # if self._start_ns is not None or self._end_ns is not None:
+        #     if len(df) > 0:
+        #         # Get timestamp column (first column of each sub-dataframe)
+        #         for col in df.columns:
+        #             if isinstance(col, tuple) and col[1] == 'path_start_timestamp [ns]':
+        #                 ts_col = col
+        #                 if self._start_ns is not None:
+        #                     df = df[df[ts_col] >= self._start_ns]
+        #                 if self._end_ns is not None:
+        #                     df = df[df[ts_col] <= self._end_ns]
+        #                 break
+
+        return df
 
     def figure(
         self,

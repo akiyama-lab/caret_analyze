@@ -43,13 +43,17 @@ class HistogramPlot(PlotBase):
         visualize_lib: VisualizeLibInterface,
         target_objects: Sequence[HistTypes],
         metrics_name: str,
-        case: str | None = None
+        case: str | None = None,
+        start_ns: int | None = None,
+        end_ns: int | None = None
     ) -> None:
         self._metrics = metrics
         self._visualize_lib = visualize_lib
         self._target_objects = target_objects
         self._metrics_name = metrics_name
         self._case = case
+        self._start_ns = start_ns
+        self._end_ns = end_ns
 
     def to_dataframe(
         self,
@@ -159,6 +163,27 @@ class HistogramPlot(PlotBase):
             ]
             for m in self._metrics
         ]
+
+        # Filter by timestamp range if specified and metrics is response_time
+        if self._metrics_name == 'response_time' and (self._start_ns is not None or self._end_ns is not None):
+            filtered_data_list: list[list[int | float]] = []
+            for _, m in enumerate(self._metrics):
+                records = to_records(m, converter)
+                df = records.to_dataframe()
+                if len(df) > 0:
+                    ts_col = df.columns[0]
+                    metric_col = df.columns[-1]
+                    # Filter by timestamp
+                    if self._start_ns is not None:
+                        df = df[df[ts_col] >= self._start_ns]
+                    if self._end_ns is not None:
+                        df = df[df[ts_col] <= self._end_ns]
+                    # Extract filtered metric values
+                    filtered_values = [v for v in df[metric_col].values if v is not None]
+                    filtered_data_list.append(filtered_values)
+                else:
+                    filtered_data_list.append([])
+            data_list = filtered_data_list
 
         if self._metrics_name in ['period', 'latency', 'response_time']:
             data_list = [[_ *10**(-6) for _ in data] for data in data_list]
